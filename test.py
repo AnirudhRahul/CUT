@@ -33,7 +33,7 @@ from models import create_model
 from util.visualizer import save_images
 from util import html
 import util.util as util
-
+import torch
 
 if __name__ == '__main__':
     opt = TestOptions().parse()  # get test options
@@ -43,6 +43,7 @@ if __name__ == '__main__':
     opt.serial_batches = True  # disable data shuffling; comment this line if results on randomly chosen images are needed.
     opt.no_flip = True    # no flip; comment this line if results on flipped images are needed.
     opt.display_id = -1   # no visdom display; the test code saves the results to a HTML file.
+    print(opt)
     dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
     train_dataset = create_dataset(util.copyconf(opt, phase="train"))
     model = create_model(opt)      # create a model given opt.model and other options
@@ -68,6 +69,10 @@ if __name__ == '__main__':
         if i >= opt.num_test:  # only apply our model to opt.num_test images.
             break
         print("Input shape", data['A'].shape)
+        testInp = torch.zeros((1,3,256,256))
+        print("zeros", testInp.shape)
+        testInp[:, :, 0:16, 0:16] = 255
+        data['A'] = testInp
         model.set_input(data)  # unpack data from data loader
         model.test()           # run inference
         print("Encoding", model.embeds.shape)
