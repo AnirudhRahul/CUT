@@ -985,6 +985,8 @@ class ResnetGenerator(nn.Module):
         self.model = nn.Sequential(*model)
 
     def forward(self, input, layers=[], encode_only=False):
+        print("Gen forward called", encode_only)
+        # print(list(enumerate(self.model)))
         if -1 in layers:
             layers.append(len(self.model))
         if len(layers) > 0:

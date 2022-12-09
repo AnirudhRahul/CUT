@@ -145,13 +145,20 @@ class CUTModel(BaseModel):
 
     def forward(self):
         """Run forward pass; called by both functions <optimize_parameters> and <test>."""
+        print("Calling forward paaassssss")
         self.real = torch.cat((self.real_A, self.real_B), dim=0) if self.opt.nce_idt and self.opt.isTrain else self.real_A
         if self.opt.flip_equivariance:
             self.flipped_for_equivariance = self.opt.isTrain and (np.random.random() < 0.5)
             if self.flipped_for_equivariance:
                 self.real = torch.flip(self.real, [3])
-
-        self.fake = self.netG(self.real)
+        # print("Encodings")
+        # print("Input", self.real.shape)
+        encoded = self.netG.forward(self.real, layers=[16], encode_only=True)
+        # [print(i, x.shape) for i, x in enumerate(res)]
+        # print("Encoding shape", )
+        self.embeds = encoded[0]
+        self.fake = self.netG.forward(self.real)
+        print("Output shape", self.fake.shape)
         self.fake_B = self.fake[:self.real_A.size(0)]
         if self.opt.nce_idt:
             self.idt_B = self.fake[self.real_A.size(0):]

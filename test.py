@@ -46,10 +46,17 @@ if __name__ == '__main__':
     dataset = create_dataset(opt)  # create a dataset given opt.dataset_mode and other options
     train_dataset = create_dataset(util.copyconf(opt, phase="train"))
     model = create_model(opt)      # create a model given opt.model and other options
+    
+    print("Current model losses", model.loss_names)
+    print("Gerneartor", model.netG.model)
     # create a webpage for viewing the results
     web_dir = os.path.join(opt.results_dir, opt.name, '{}_{}'.format(opt.phase, opt.epoch))  # define the website directory
     print('creating web directory', web_dir)
     webpage = html.HTML(web_dir, 'Experiment = %s, Phase = %s, Epoch = %s' % (opt.name, opt.phase, opt.epoch))
+
+    encodings = []
+    
+    images = []
 
     for i, data in enumerate(dataset):
         if i == 0:
@@ -60,11 +67,16 @@ if __name__ == '__main__':
                 model.eval()
         if i >= opt.num_test:  # only apply our model to opt.num_test images.
             break
+        print("Input shape", data['A'].shape)
         model.set_input(data)  # unpack data from data loader
         model.test()           # run inference
+        print("Encoding", model.embeds.shape)
+        embeds = model.embeds.reshape((256, 64*64)).T
+        print(embeds.shape)
         visuals = model.get_current_visuals()  # get image results
         img_path = model.get_image_paths()     # get image paths
         if i % 5 == 0:  # save images to an HTML file
             print('processing (%04d)-th image... %s' % (i, img_path))
         save_images(webpage, visuals, img_path, width=opt.display_winsize)
+        break
     webpage.save()  # save the HTML
